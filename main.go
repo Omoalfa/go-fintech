@@ -20,18 +20,19 @@ func main() {
 		return c.SendString("Welcome to Go Fintec!")
 	})
 
-	db := database.ConnectDB()
+	database.ConnectDB()
 
-	if db != nil {
-		//run auto migrate:::
-		db.AutoMigrate(&models.User{})
+	db := database.GetDB()
+	// if db != nil {
+	//run auto migrate:::
+	db.AutoMigrate(&models.User{})
 
-		//Setup routes:::
-		routes.SetupUserRoutes(app)
+	//Setup routes:::
+	routes.SetupUserRoutes(app)
 
-		//set up app in here::::
-		app.Listen(":3000")
-	}
+	//set up app in here::::
+	app.Listen(":3000")
+	// }
 
 	log.Fatal("Unable to connect to DB")
 }
