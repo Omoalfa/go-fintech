@@ -1,55 +1,63 @@
 package models
 
 import (
-	"fmt"
-
 	"github.com/Omoalfa/go-fintech/database"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
-	Email      string `json:"email" gorm:"unique"`
-	Phone      string `json:"string" gorm:"unique"`
-	FirstName  string `json:"firstName"`
-	LastName   string `json:"lastName"`
-	Avatar     string `json:"avatar"`
-	Password   string `json:"password"`
-	IsVerified *bool  `json:"isVerified"`
+	Email            string `json:"email" cuv:"required,email,eev" vvc:"required,eev"`
+	Phone            string `json:"phone" cuv:"required,e164,pev"`
+	FirstName        string `json:"firstName" cuv:"required"`
+	LastName         string `json:"lastName" cuv:"required"`
+	Avatar           string `json:"avatar"`
+	Password         string `json:"password" cuv:"required,min=8"`
+	IsVerified       bool   `json:"isVerified" gorm:"column:isVerified,default:false"`
+	Username         string `json:"username" gorm:"unique,column:username" cuv:"uev"`
+	VerificationCode string `json:"verificationCode"`
+	Pin              string `json:"pin" gorm:"-:all" vvc:"required,vp"`
 }
 
-var db = database.GetDB()
+func (b *User) DBCreateUser() *User {
+	db := database.GetDB()
+	db.Create(b)
+	return b
+}
 
-func (u *User) BeforeSave() (err error) {
-	fmt.Println("before save")
-	fmt.Println(u.Password)
-	if u.Password != "" {
-		hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
-		if err != nil {
-			return err
-		}
-		u.Password = string(hash)
+func DBUpdateUser(id uint, user *User) (*User, error) {
+	db := database.GetDB()
+	tx := db.Where("ID = ?", id).Updates(user)
+	if tx.Error != nil {
+		return nil, tx.Error
 	}
-	return
+	return user, nil
 }
 
-func DBCreateUser(user *User) *User {
-	db.Create(&user)
-	return user
+func DBDeleteUser(id int) error {
+	db := database.GetDB()
+	tx := db.Delete(&User{}, id)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
 }
 
-func DBUpdateUser(id int, user *User) *User {
-	db.Where("ID = ?", id).Updates(&user)
-	return user
-}
-
-func DBDeleteUser(id int) {
-	db.Delete(&User{}, id)
-}
-
-func DBGetUsers(query *User) []User {
+func DBGetUsers(query *User) ([]User, error) {
+	db := database.GetDB()
 	var users []User
-	db.Where(query).Find(&users)
-	return users
+	tx := db.Where(query).Find(&users)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return users, nil
+}
+
+func DBGetUserByEmail(email string, user *User) error {
+	db := database.GetDB()
+	tx := db.Where("email = ?", email).First(user)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
 }
