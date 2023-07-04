@@ -10,6 +10,8 @@ import (
 func SetupUserRoutes(app *fiber.App) {
 	userRoutes := fiber.New()
 
+	userRoutes.Post("/verify", user_controller.VerifyEmail)
+	userRoutes.Get("/verify", user_controller.ResendVerificationMail)
 	userRoutes.Get("/", user_controller.GetUsers)
 	userRoutes.Post("/", user_controller.CreateUser)
 	userRoutes.Post("/login", user_controller.LoginUser)

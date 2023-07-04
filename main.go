@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
+	"github.com/Omoalfa/go-fintech/config"
 	"github.com/Omoalfa/go-fintech/database"
 	"github.com/Omoalfa/go-fintech/database/models"
 	"github.com/Omoalfa/go-fintech/routes"
@@ -20,6 +22,9 @@ func main() {
 		return c.SendString("Welcome to Go Fintec!")
 	})
 
+	config.SetUpConfig()
+	fmt.Println(config.Config)
+	// fmt.Println(config.Test)
 	database.ConnectDB()
 
 	db := database.GetDB()

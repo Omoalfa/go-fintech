@@ -7,14 +7,16 @@ import (
 
 type User struct {
 	gorm.Model
-	Email      string `json:"email" cuv:"required,email,eev"`
-	Phone      string `json:"phone" cuv:"required,e164,pev"`
-	FirstName  string `json:"firstName" cuv:"required"`
-	LastName   string `json:"lastName" cuv:"required"`
-	Avatar     string `json:"avatar"`
-	Password   string `json:"password" cuv:"required,min=8"`
-	IsVerified *bool  `json:"isVerified" gorm:"column:isVerified,default:false"`
-	Username   string `json:"username" gorm:"unique,column:username" cuv:"uev"`
+	Email            string `json:"email" cuv:"required,email,eev" vvc:"required,eev"`
+	Phone            string `json:"phone" cuv:"required,e164,pev"`
+	FirstName        string `json:"firstName" cuv:"required"`
+	LastName         string `json:"lastName" cuv:"required"`
+	Avatar           string `json:"avatar"`
+	Password         string `json:"password" cuv:"required,min=8"`
+	IsVerified       bool   `json:"isVerified" gorm:"column:isVerified,default:false"`
+	Username         string `json:"username" gorm:"unique,column:username" cuv:"uev"`
+	VerificationCode string `json:"verificationCode"`
+	Pin              string `json:"pin" gorm:"-:all" vvc:"required,vp"`
 }
 
 func (b *User) DBCreateUser() *User {
@@ -23,7 +25,7 @@ func (b *User) DBCreateUser() *User {
 	return b
 }
 
-func DBUpdateUser(id int, user *User) (*User, error) {
+func DBUpdateUser(id uint, user *User) (*User, error) {
 	db := database.GetDB()
 	tx := db.Where("ID = ?", id).Updates(user)
 	if tx.Error != nil {
@@ -51,7 +53,11 @@ func DBGetUsers(query *User) ([]User, error) {
 	return users, nil
 }
 
-func DBGetUserByEmail(email string, user *User) {
+func DBGetUserByEmail(email string, user *User) error {
 	db := database.GetDB()
-	db.Where("email = ?", email).First(user)
+	tx := db.Where("email = ?", email).First(user)
+	if tx.Error != nil {
+		return tx.Error
+	}
+	return nil
 }
